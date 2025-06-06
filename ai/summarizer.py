@@ -65,8 +65,8 @@ class Summarizer:
             
         except Exception as e:
             logger.error(f"要約中にエラーが発生しました: {e}", exc_info=True)
-            # エラーの場合は元のテキストを切り詰めて返す
-            return text[:max_length - 3] + "..."
+            # 呼び出し側で適切に処理できるよう例外を送出する
+            raise
 
 # テスト用コード
 async def test_summarizer():
