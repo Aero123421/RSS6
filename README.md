@@ -70,11 +70,12 @@ pip install -r requirements.txt
 # 環境変数の設定
 cp .env.example .env
 # .envファイルを編集してDiscordトークンなどを設定
-# LM Studioを使用する場合は LMSTUDIO_API_URL を
-# 実行中のLM Studio APIサーバーのURLに変更してください。
-# パスには /chat/completions を付けず、/v1 までを指定します。
-#   例: Windows/Macでは http://host.docker.internal:1234/v1
-#       Linuxでは http://172.17.0.1:1234/v1
+# LM Studio を利用する際、通常は `LMSTUDIO_API_URL` の設定は不要です。
+# LM Studio を別ホストで動かす場合や Docker コンテナから接続する場合のみ
+# 必要に応じて URL を指定してください（/v1 まで）。
+#   例: Windows/Mac からコンテナ経由で接続する場合は
+#       http://host.docker.internal:1234/v1
+#       Linux の場合は http://172.17.0.1:1234/v1
 
 # ボットの起動
 python bot.py

@@ -28,7 +28,9 @@ DISCORD_TOKEN=your_discord_token_here
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # LM Studio API設定（LM Studioを使用する場合）
-# LM Studio APIコンテナを起動する場合は、以下のURLを指定してください
+# 通常は設定不要ですが、コンテナから別ホストの LM Studio に接続する場合など
+# 特別な URL が必要なときだけ `LMSTUDIO_API_URL` を指定してください。
+# 例: http://host.docker.internal:1234/v1
 # LMSTUDIO_API_URL=http://lmstudio-api:1234/v1
 ```
 
@@ -125,7 +127,7 @@ docker-compose logs discord-rss-bot
 
 1. LM Studio APIサービスが起動しているか確認してください。
 2. モデルファイルが正しく配置されているか確認してください。
-3. `.env` ファイルの `LMSTUDIO_API_URL` が正しく設定されているか確認してください。
+3. 必要に応じて `.env` の `LMSTUDIO_API_URL` が正しく設定されているか確認してください。
 
 ### データが保存されない場合
 

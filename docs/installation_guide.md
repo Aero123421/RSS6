@@ -113,14 +113,13 @@ DISCORD_TOKEN=your_discord_token_here
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # LM Studio API設定（LM Studioを使用する場合）
-# ローカル実行時は http://localhost:1234/v1
-# Docker 環境でボットとAPIを同時に起動する場合は
-#   http://lmstudio-api:1234/v1 を指定してください
-# ボットのみをコンテナで動かし、APIを別ホストで実行する場合は
-#   そのホストのURLを LMSTUDIO_API_URL に設定します。
-#   パスには /chat/completions を付けず、/v1 までを指定してください。
+# 基本的には設定不要です。LM Studio を同一環境で実行する場合は
+# デフォルトの http://localhost:1234/v1 が利用されます。
+# Docker コンテナからホストの LM Studio へ接続する場合など、
+# 特別な URL が必要なときのみ `LMSTUDIO_API_URL` を指定してください。
 #   例: Windows/Macでは http://host.docker.internal:1234/v1
 #       Linuxでは http://172.17.0.1:1234/v1
+# パスには /chat/completions を付けず、/v1 までを指定します。
 # LMSTUDIO_API_URL=http://lmstudio-api:1234/v1
 ```
 
