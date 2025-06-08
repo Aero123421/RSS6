@@ -100,13 +100,18 @@ class MessageBuilder:
             
             # サムネイル画像の設定
             if self.config.get("use_thumbnails", True):
-                image_url = article.get("image")
-                if not image_url:
-                    media_list = article.get("media")
-                    if isinstance(media_list, list):  # Ensure 'media' is a list
-                        for media_item in media_list:
-                            # Ensure media_item is a dictionary before calling .get()
-                            if isinstance(media_item, dict) and \
+                image_url = self._extract_image_url(article)
+
+    def _extract_image_url(self, article: Dict[str, Any]) -> Optional[str]:
+        """記事からサムネイル画像のURLを取得する"""
+        image_url = article.get("image")
+        if not image_url:
+            for media_item in article.get("media", []):
+                if media_item.get("type", "").startswith("image") and media_item.get("url"):
+                    image_url = media_item.get("url")
+                    break
+        return image_url
+
                                media_item.get("type", "").startswith("image") and \
                                media_item.get("url"):
                                 image_url = media_item.get("url")
