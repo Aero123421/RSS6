@@ -152,4 +152,16 @@ class ConfigManager:
                 self.config["gemini_api_keys"] = keys
                 logger.info("環境変数からGemini APIキーのリストを読み込みました")
 
+        if os.environ.get("QA_MODEL") and not self.config.get("qa_model"):
+            self.config["qa_model"] = os.environ.get("QA_MODEL")
+            logger.info("環境変数からQAモデルを読み込みました")
+
+        if os.environ.get("THINKING_BUDGET") and not self.config.get("thinking_budget"):
+            try:
+                self.config["thinking_budget"] = int(os.environ.get("THINKING_BUDGET"))
+            except ValueError:
+                logger.warning("THINKING_BUDGET 環境変数の値が不正です")
+            else:
+                logger.info("環境変数からthinking_budgetを読み込みました")
+
 

@@ -99,6 +99,7 @@ class GeminiAPI:
         top_p: float = 0.95,
         top_k: int = 40,
         system_instruction: Optional[str] = None,
+        thinking_budget: Optional[int] = None,
     ) -> str:
         """
         テキストを生成する
@@ -125,6 +126,22 @@ class GeminiAPI:
                     candidate_count=1,
                 )
 
+                gen_config = generation_config
+                if thinking_budget:
+                    try:
+                        from google.generativeai.types import GenerateContentConfig, ThinkingConfig
+
+                        gen_config = GenerateContentConfig(
+                            generation_config=generation_config,
+                            thinking_config=ThinkingConfig(
+                                thinking_budget=int(thinking_budget)
+                            ),
+                        )
+                    except Exception:
+                        logger.warning(
+                            "ThinkingConfig is not supported by the installed google-generativeai library"
+                        )
+
                 model = self.model
                 if system_instruction:
                     model = genai.GenerativeModel(
@@ -136,7 +153,7 @@ class GeminiAPI:
 
                 response = await model.generate_content_async(
                     prompt,
-                    generation_config=generation_config,
+                    generation_config=gen_config,
                 )
 
                 if response.candidates:

@@ -26,6 +26,8 @@ DEFAULT_CONFIG = {
     "gemini_api_keys": [],  # Gemini API Keyのリスト
     "ai_model": "gemini-2.0-flash",  # 使用するAIモデル
                               # gemini-2.0-flash, gemini-2.5-flash-preview-05-20
+    "qa_model": "gemini-2.5-flash-preview-05-20",  # 質問応答用モデル
+    "thinking_budget": 0,  # thinkingBudget の設定値
     "summarize": True,     # 要約（翻訳を兼ねる）を有効にするか
     "summary_length": 4000, # 要約の最大文字数
     "classify": False,     # ジャンル分類を有効にするか
