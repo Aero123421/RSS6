@@ -47,6 +47,30 @@ class AIProcessor:
 
         logger.info("AIプロセッサーを初期化しました")
 
+    async def reload_from_config(self) -> None:
+        """設定の変更を反映してAPIクライアントを再初期化する"""
+        self.ai_model = self.config.get("ai_model", "gemini-2.0-flash")
+        self.qa_model = self.config.get("qa_model", self.ai_model)
+
+        if self.api:
+            try:
+                await self.api.close()
+            except Exception as e:
+                logger.warning(f"Error closing main API client during reload: {e}")
+        if self.qa_api:
+            try:
+                await self.qa_api.close()
+            except Exception as e:
+                logger.warning(f"Error closing QA API client during reload: {e}")
+
+        self.api = self._create_api(self.ai_model)
+        self.qa_api = self._create_api(self.qa_model)
+
+        self.summarizer.api = self.api
+        self.classifier.api = self.api
+
+        logger.info("AIプロセッサーの設定を再読み込みしました")
+
     def _create_api(self, model: Optional[str] = None):
         """Google Gemini APIインスタンスを生成する"""
         api_key = self.config.get("gemini_api_key", "")

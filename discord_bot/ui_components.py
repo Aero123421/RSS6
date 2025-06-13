@@ -191,8 +191,14 @@ class AIModelSelect(ui.Select):
         self.config_manager.update_config(self.config)
 
         # AIプロセッサーを再初期化
-        # AIプロセッサーの再設定が必要な場合はここで実施
-        await self.feed_manager.ai_processor.api.close()
+        try:
+            await self.feed_manager.ai_processor.reload_from_config()
+        except Exception as e:
+            logger.error(f"AIプロセッサーの再読み込みに失敗しました (model select): {e}", exc_info=True)
+            await interaction.response.send_message(
+                f"AIモデルを「{selected}」に設定しましたが、プロセッサーの再読み込み中にエラーが発生しました。詳細はログを確認してください。", ephemeral=True
+            )
+            return
 
         # 応答を送信
         await interaction.response.send_message(
@@ -411,7 +417,14 @@ class GeminiAPIKeyModal(ui.Modal, title="Gemini APIキー追加"):
             keys.insert(0, key)
             self.config["gemini_api_keys"] = keys
             self.config_manager.update_config(self.config)
-            await self.feed_manager.ai_processor.api.close()
+            try:
+                await self.feed_manager.ai_processor.reload_from_config()
+            except Exception as e:
+                logger.error(f"AIプロセッサーの再読み込みに失敗しました (API key add): {e}", exc_info=True)
+                await interaction.response.send_message(
+                    "Gemini APIキーを追加しましたが、AIプロセッサーの再読み込み中にエラーが発生しました。詳細はログを確認してください。", ephemeral=True
+                )
+                return
         await interaction.response.send_message(
             "Gemini APIキーを追加しました", ephemeral=True
         )
