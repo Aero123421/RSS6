@@ -53,9 +53,15 @@ class AIProcessor:
         self.qa_model = self.config.get("qa_model", self.ai_model)
 
         if self.api:
-            await self.api.close()
+            try:
+                await self.api.close()
+            except Exception as e:
+                logger.warning(f"Error closing main API client during reload: {e}")
         if self.qa_api:
-            await self.qa_api.close()
+            try:
+                await self.qa_api.close()
+            except Exception as e:
+                logger.warning(f"Error closing QA API client during reload: {e}")
 
         self.api = self._create_api(self.ai_model)
         self.qa_api = self._create_api(self.qa_model)
