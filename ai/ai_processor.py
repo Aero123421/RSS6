@@ -10,7 +10,6 @@ AIプロセッサー
 import logging
 import asyncio
 from typing import Dict, Any, Optional, List
-from utils.helpers import select_gemini_api_key
 
 from .gemini_api import GeminiAPI
 from .summarizer import Summarizer
@@ -76,9 +75,16 @@ class AIProcessor:
             if self.config.get("classify", False):
                 processed = await self._classify_article(processed)
             
+            # 検索用キーワード抽出
+            try:
+                keywords = await self.extract_keywords_for_storage(processed)
+                processed["keywords_en"] = keywords
+            except Exception as e:
+                logger.warning(f"キーワード抽出に失敗しました: {e}")
+
             # 処理フラグを追加
             processed["ai_processed"] = True
-            
+
             return processed
             
         except Exception as e:
@@ -165,14 +171,56 @@ class AIProcessor:
             article["category"] = "other"  # デフォルトカテゴリ
             return article
 
-    async def answer_question(self, article: Dict[str, Any], question: str) -> str:
-        """記事内容を元に質問に回答する"""
-        content = article.get("content", "")
+    async def extract_keywords_for_storage(self, article: Dict[str, Any]) -> str:
+        """記事から検索用キーワードを抽出する"""
         title = article.get("title", "")
+        content = article.get("content", "")
         prompt = (
-            "あなたはニュース解説者です。以下の記事内容に基づいて質問に日本語で答えてください。\n\n"
-            f"タイトル: {title}\n\n本文:\n{content}\n\n質問: {question}\n\n回答:"
+            "You are a data indexer. Analyze the following article and extract the 5-7 most important and representative keywords in English. "
+            "The keywords should be suitable for later searching. Output them as a single, comma-separated string.\n\n"
+            f"Title: {title}\n\nContent:\n{content}\n\nKeywords:"
         )
+        try:
+            return await self.api.generate_text(prompt, max_tokens=50, temperature=0.3)
+        except Exception as e:
+            logger.error(f"キーワード抽出中にエラーが発生しました: {e}", exc_info=True)
+            return ""
+
+    async def _generate_search_keywords(self, article: Dict[str, Any], question: str) -> List[str]:
+        """質問と記事から関連記事検索用のキーワードを抽出する"""
+        title = article.get("title", "")
+        content = article.get("content", "")
+        prompt = (
+            "You are a search query expert. Extract up to 5 important English keywords from the user's question and the original article to find related information.\n\n"
+            f"Title: {title}\n\nContent:\n{content}\n\nQuestion: {question}\n\nKeywords:"
+        )
+        try:
+            text = await self.api.generate_text(prompt, max_tokens=30, temperature=0.3)
+            return [k.strip() for k in text.split(',') if k.strip()]
+        except Exception as e:
+            logger.error(f"検索キーワード生成中にエラーが発生しました: {e}", exc_info=True)
+            return []
+
+    async def answer_question(
+        self,
+        original_article: Dict[str, Any],
+        related_articles: List[Dict[str, Any]],
+        question: str,
+    ) -> str:
+        """元記事と関連記事を参照して質問に回答する"""
+        main_title = original_article.get("title", "")
+        main_content = original_article.get("content", "")
+        prompt = (
+            "You are an expert news commentator. Based on the following articles, please answer the user's question in Japanese.\n\n"
+            f"**Main Article:**\nTitle: {main_title}\nContent: {main_content}\n\n"
+            "**Related Articles:**\n"
+        )
+        for i, art in enumerate(related_articles[:5], 1):
+            part = art.get("content", "")
+            prompt += (
+                f"{i}. Title: {art.get('title','')}\n   Content: {part[:500]}...\n"
+            )
+        prompt += f"\n**User's Question:**\n{question}\n\n**Answer (in Japanese):**"
         try:
             return await self.api.generate_text(prompt, max_tokens=1000, temperature=0.3)
         except Exception as e:
