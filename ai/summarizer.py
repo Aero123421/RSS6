@@ -17,13 +17,14 @@ from .simple_summarizer import simple_summarize
 
 logger = logging.getLogger(__name__)
 
+
 class Summarizer:
     """要約クラス"""
-    
+
     def __init__(self, api, system_instruction: Optional[str] = None):
         """
         初期化
-        
+
         Args:
             api: APIインスタンス（GeminiAPI）
         """
@@ -33,27 +34,28 @@ class Summarizer:
             "長文は読みやすいように適度に改行してください。"
         )
         logger.info("要約機能を初期化しました")
-    
-    async def summarize(self, text: str, max_length: int = 4000, summary_type: str = "normal") -> str:
+
+    async def summarize(
+        self, text: str, max_length: int = 4000, summary_type: str = "normal"
+    ) -> str:
         """
         テキストを要約する
-        
+
         Args:
             text: 要約するテキスト
             max_length: 要約の最大文字数
-            
+
         Returns:
             要約されたテキスト
         """
         if not text:
             return ""
-        
+
         try:
             # 要約および翻訳プロンプトの作成
             if summary_type == "title":
                 prompt = (
-                    "次のタイトルを日本語に翻訳してください。\n\n"
-                    f"{text}\n\n翻訳:"
+                    "次のタイトルを日本語に翻訳してください。\n\n" f"{text}\n\n翻訳:"
                 )
             else:
                 if summary_type == "short":
@@ -71,7 +73,7 @@ class Summarizer:
                         "次の文章を日本語で200文字以内で要約してください。読みやすいように適度に改行してください。\n\n"
                         f"{text}\n\n要約:"
                     )
-            
+
             # APIを使用して要約
             if isinstance(self.api, GeminiAPI):
                 summary = await self.api.generate_text(
@@ -81,18 +83,20 @@ class Summarizer:
                     system_instruction=self.system_instruction,
                 )
             else:
-                summary = await self.api.generate_text(prompt, max_tokens=1000, temperature=0.3)
-            
+                summary = await self.api.generate_text(
+                    prompt, max_tokens=1000, temperature=0.3
+                )
+
             # 余計なプレフィックスを削除
             prefixes = ["要約:", "要約結果:", "翻訳:", "翻訳結果:"]
             for prefix in prefixes:
                 if summary.startswith(prefix):
-                    summary = summary[len(prefix):].strip()
-            
+                    summary = summary[len(prefix) :].strip()
+
             # 最大長を超えた場合は切り詰め
             if len(summary) > max_length:
-                summary = summary[:max_length - 3] + "..."
-            
+                summary = summary[: max_length - 3] + "..."
+
             return summary
 
         except Exception as e:
