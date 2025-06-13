@@ -32,8 +32,11 @@ class AIProcessor:
         # AIモデルの設定（Google Geminiのみを利用）
         self.ai_provider = "gemini"
         self.ai_model = config.get("ai_model", "gemini-2.0-flash")
+        self.qa_model = config.get("qa_model", self.ai_model)
+        self.thinking_budget = config.get("thinking_budget", 0)
 
         self.api = self._create_api(self.ai_model)
+        self.qa_api = self._create_api(self.qa_model)
 
         # 各処理クラスの初期化
         self.summarizer = Summarizer(self.api)
@@ -215,14 +218,19 @@ class AIProcessor:
             f"**Main Article:**\nTitle: {main_title}\nContent: {main_content}\n\n"
             "**Related Articles:**\n"
         )
-        for i, art in enumerate(related_articles[:5], 1):
+        for i, art in enumerate(related_articles[:15], 1):
             part = art.get("content", "")
             prompt += (
-                f"{i}. Title: {art.get('title','')}\n   Content: {part[:500]}...\n"
+                f"{i}. Title: {art.get('title','')}\n   Content: {part[:600]}...\n"
             )
         prompt += f"\n**User's Question:**\n{question}\n\n**Answer (in Japanese):**"
         try:
-            return await self.api.generate_text(prompt, max_tokens=1000, temperature=0.3)
+            return await self.qa_api.generate_text(
+                prompt,
+                max_tokens=1000,
+                temperature=0.3,
+                thinking_budget=self.thinking_budget,
+            )
         except Exception as e:
             logger.error(f"回答生成中にエラーが発生しました: {e}", exc_info=True)
             return "回答を生成できませんでした。"

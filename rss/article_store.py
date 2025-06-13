@@ -363,7 +363,7 @@ class ArticleStore:
         self,
         keywords: List[str],
         original_article_id: str,
-        limit: int = 5,
+        limit: int = 15,
     ) -> List[Dict[str, Any]]:
         """指定されたキーワードに基づき関連記事を検索する"""
         if not keywords:
