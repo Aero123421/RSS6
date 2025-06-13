@@ -191,8 +191,7 @@ class AIModelSelect(ui.Select):
         self.config_manager.update_config(self.config)
 
         # AIプロセッサーを再初期化
-        # AIプロセッサーの再設定が必要な場合はここで実施
-        await self.feed_manager.ai_processor.api.close()
+        await self.feed_manager.ai_processor.reload_from_config()
 
         # 応答を送信
         await interaction.response.send_message(
@@ -411,7 +410,7 @@ class GeminiAPIKeyModal(ui.Modal, title="Gemini APIキー追加"):
             keys.insert(0, key)
             self.config["gemini_api_keys"] = keys
             self.config_manager.update_config(self.config)
-            await self.feed_manager.ai_processor.api.close()
+            await self.feed_manager.ai_processor.reload_from_config()
         await interaction.response.send_message(
             "Gemini APIキーを追加しました", ephemeral=True
         )
